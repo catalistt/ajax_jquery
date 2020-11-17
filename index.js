@@ -1,113 +1,57 @@
-document.addEventListener('DOMContentLoaded', function(event){
-    var nextPokemonsBtn = document.querySelector("#next");
-    nextPokemonsBtn.addEventListener("click", function(){
-        var url = this.getAttribute("data-url");
-        getPokemons(url);
-    });
+$(document).ready(function() {
+  $("#next").on("click", function() {
+      var url = $(this).data("url");
+      getPokemons(url);
+  });
 
-    document.addEventListener('click', function (event) {
-        if (!event.target.matches('.poke-info')) return;
-        var pokeSelector = document.querySelector(".poke-info");
-        var pokeInfoUrl = pokeSelector.getAttribute("data-poke-url");     
-        fetch(pokeInfoUrl)
-        .then((resp) => resp.json())
-        .then(function(result){
+  $(".pokemons").delegate(".poke-info", "click", function() {
+      var pokeInfoUrl = $(this).data("poke-url");
+      $.ajax({
+          url: pokeInfoUrl,
+          success: function(result) {
               var pokeName = result.name,
                   pokeTypes = result.types,
                   pokeAbilities = result.abilities,
                   pokeMoves = result.moves.splice(5);
-                  name = document.querySelector("#poke-name");
-                  name.innerHTML = pokeName.toUpperCase()
-                  pokeTypeUl= document.querySelector("#poke-types");
-                  pokeTypeUl.innerHTML = 'Type: '
-                  pokeAbilityUl= document.querySelector("#poke-abilities");    
-                  pokeAbilityUl.innerHTML = 'Abilities: '   
-                  pokeMoveUl= document.querySelector("#poke-moves");            
-                  pokeMoveUl.innerHTML = 'Moves: '
-
+                  $("#poke-types").empty();
+                  $("#poke-abilities").empty();
+                  $("#poke-moves").empty();
+                  $("#poke-types").append('Type:');
+                  $("#poke-abilities").append('Abilities:');
+                  $("#poke-moves").append('Moves:');
+              $("#poke-name").text(pokeName.toUpperCase())
               for (pokeType of pokeTypes) {
-                var li = document.createElement("li");
-                li.classList.add("list-group-item");
-                li.innerHTML = pokeType.type.name;
-                pokeTypeUl.appendChild(li);
-                }
+                  $("#poke-types").append('<li class="list-group-item">' + pokeType.type.name + '</li>');
+              }
               for (pokeAbility of pokeAbilities) {
-                var li = document.createElement("li");
-                li.classList.add("list-group-item");
-                li.innerHTML = pokeAbility.ability.name;
-                pokeAbilityUl.appendChild(li);
+                  $("#poke-abilities").append('<li class="list-group-item">' + pokeAbility.ability.name + '</li>');
               }
               pokeMoves.forEach(function(pokeMove, index) {
                 if (index < 5) {
-                var li = document.createElement("li");
-                li.classList.add("list-group-item");
-                li.innerHTML = pokeMove.move.name;
-                pokeMoveUl.appendChild(li);
-              }})
-              //No se cambia el modal porque bootstrap trabaja con jquery
+                  $("#poke-moves").append('<li class="list-group-item">' + pokeMove.move.name + '</li>');
+                }
+            })
               $("#poke-modal").modal('show');
-              $("#type-modal").modal('show');
+
+          }
+
+
       });
-    });
+  })
 });
 
 function getPokemons(pokeUrl) {
-    fetch(pokeUrl)
-    .then((resp) => resp.json())
-    .then(function(result)
-     {
+  $.ajax({
+      url: pokeUrl,
+      success: function(result) {
           var nextUrl = result.next;
           var pokemons = result.results;
           for (pokemon of pokemons) {
-            pokemones= document.querySelector(".pokemons");
+              var card = '<div class="col-3 mb-3"><div class="card"><div class="card-header"><h5 class="card-title">' + pokemon.name + '</h5></div><div class="card-body"><p class="card-text">Texto</p><button class="btn btn-warning poke-info" data-poke-url="' + pokemon.url + '">Show me more info!</button></div></div></div>';
+              $(".pokemons").append(card);
 
-            var pokemonUrl = pokemon.url;
-            var a = document.createElement("a");
-            a.href = pokemonUrl;
-
-            var pokemonName = pokemon.name;
-            const pokeName = document.createTextNode(pokemonName);
-            
-            var div1 = document.createElement("div");
-            div1.classList.add("col-3", "mb-3");
-            
-
-            var div2 = document.createElement("div");
-            div2.classList.add("card");
-            
-            var div3 = document.createElement("div");
-            div3.classList.add("card-body");
-            var parr = document.createElement("p");
-            const texto = document.createTextNode("texto");
-            parr.appendChild(texto);
-            
-            
-            var h5 = document.createElement("h5");
-            h5.classList.add("card-title");
-
-            var div4 = document.createElement("div");
-            div4.classList.add("card-header");
-
-            var p1 = document.createElement("p");
-            p1.classList.add("card-text");
-
-            var button1 = document.createElement("button");
-            button1.classList.add("btn", "btn-warning", "poke-info");
-            button1.setAttribute('data-poke-url',a);
-            const showMore = document.createTextNode("Show me more info!");
-
-            div3.appendChild(parr);
-            button1.appendChild(showMore);  
-            button1.appendChild(a);
-            div3.appendChild(button1);
-            div2.appendChild(div4);
-            h5.appendChild(pokeName);
-            div4.appendChild(h5);
-            div2.appendChild(div3);
-            div1.appendChild(div2);
-            pokemones.appendChild(div1);
-        }
-          var next_Url = document.querySelector("#next");
-          next_Url.setAttribute('data-url', nextUrl);
-      })
-  };
+          }
+          $("#next").data("url", nextUrl);
+      }
+  });
+}
